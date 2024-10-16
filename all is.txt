@@ -1,0 +1,207 @@
+def caesar_cipher_encrypt(plaintext, shift):
+    cipher_text = ""
+    for char in plaintext:
+        if char.isalpha():
+            shift_val = 65 if char.isupper() else 97
+            cipher_text += chr((ord(char) - shift_val + shift) % 26 + shift_val)
+        else:
+            cipher_text += char
+    return cipher_text
+
+def caesar_cipher_decrypt(ciphertext, shift):
+    return caesar_cipher_encrypt(ciphertext, -shift)
+
+# Example usage:
+plaintext = "HELLO WORLD"
+shift = 3
+ciphertext = caesar_cipher_encrypt(plaintext, shift)
+print("Encrypted:", ciphertext)
+print("Decrypted:", caesar_cipher_decrypt(ciphertext, shift))
+ 
+
+
+1111111111111111111111111111
+
+import numpy as np
+
+def mod_inverse(matrix, modulus):
+    det = int(np.round(np.linalg.det(matrix)))
+    inv_det = pow(det, -1, modulus)
+    matrix_modulus = np.round(np.linalg.inv(matrix) * det).astype(int) % modulus
+    return (inv_det * matrix_modulus) % modulus
+
+def hill_cipher_encrypt(plaintext, key_matrix):
+    plaintext = plaintext.upper().replace(" ", "")
+    if len(plaintext) % 2 != 0:
+        plaintext += "X"
+    
+    numeric_text = [ord(c) - 65 for c in plaintext]
+    pairs = [numeric_text[i:i+2] for i in range(0, len(numeric_text), 2)]
+    
+    cipher_pairs = [(np.dot(key_matrix, pair) % 26).tolist() for pair in pairs]
+    ciphertext = ''.join([chr(num + 65) for pair in cipher_pairs for num in pair])
+    return ciphertext
+
+def hill_cipher_decrypt(ciphertext, key_matrix):
+    inverse_key = mod_inverse(key_matrix, 26)
+    numeric_text = [ord(c) - 65 for c in ciphertext]
+    pairs = [numeric_text[i:i+2] for i in range(0, len(numeric_text), 2)]
+    
+    decrypted_pairs = [(np.dot(inverse_key, pair) % 26).tolist() for pair in pairs]
+    decrypted_text = ''.join([chr(num + 65) for pair in decrypted_pairs for num in pair])
+    return decrypted_text
+
+# Example usage:
+key_matrix = np.array([[3, 3], [2, 5]])
+plaintext = "HELLO"
+ciphertext = hill_cipher_encrypt(plaintext, key_matrix)
+print("Encrypted:", ciphertext)
+print("Decrypted:", hill_cipher_decrypt(ciphertext, key_matrix))
+
+
+222222222222222222222222222222
+
+def generate_playfair_key_matrix(key):
+    key = ''.join(sorted(set(key.upper().replace("J", "I")), key=lambda x: key.index(x)))
+    alphabet = "ABCDEFGHIKLMNOPQRSTUVWXYZ"
+    key += ''.join(c for c in alphabet if c not in key)
+    matrix = [list(key[i:i+5]) for i in range(0, 25, 5)]
+    return matrix
+
+def playfair_cipher_encrypt(plaintext, key_matrix):
+    plaintext = plaintext.upper().replace("J", "I").replace(" ", "")
+    digraphs = []
+    
+    i = 0
+    while i < len(plaintext):
+        a = plaintext[i]
+        if i + 1 < len(plaintext) and plaintext[i + 1] != a:
+            b = plaintext[i + 1]
+            i += 2
+        else:
+            b = 'X'
+            i += 1
+        digraphs.append((a, b))
+
+    def get_position(letter):
+        for i, row in enumerate(key_matrix):
+            if letter in row:
+                return i, row.index(letter)
+
+    ciphertext = ''
+    for a, b in digraphs:
+        r1, c1 = get_position(a)
+        r2, c2 = get_position(b)
+
+        if r1 == r2:
+            ciphertext += key_matrix[r1][(c1 + 1) % 5] + key_matrix[r2][(c2 + 1) % 5]
+        elif c1 == c2:
+            ciphertext += key_matrix[(r1 + 1) % 5][c1] + key_matrix[(r2 + 1) % 5][c2]
+        else:
+            ciphertext += key_matrix[r1][c2] + key_matrix[r2][c1]
+    
+    return ciphertext
+
+# Example usage:
+key = "KEYWORD"
+plaintext = "HELLO"
+key_matrix = generate_playfair_key_matrix(key)
+ciphertext = playfair_cipher_encrypt(plaintext, key_matrix)
+print("Encrypted:", ciphertext)
+
+
+3333333333333333333333333333333
+
+from Crypto.Cipher import DES
+from Crypto.Util.Padding import pad, unpad
+
+def des_single_round_encrypt(plaintext, key):
+    cipher = DES.new(key, DES.MODE_ECB)
+    padded_text = pad(plaintext.encode(), DES.block_size)
+    return cipher.encrypt(padded_text)
+
+def des_single_round_decrypt(ciphertext, key):
+    cipher = DES.new(key, DES.MODE_ECB)
+    return unpad(cipher.decrypt(ciphertext), DES.block_size).decode()
+
+# Example usage:
+key = b'8bytekey'  # DES key must be 8 bytes long
+plaintext = "HELLO DES"
+ciphertext = des_single_round_encrypt(plaintext, key)
+print("Encrypted:", ciphertext)
+print("Decrypted:", des_single_round_decrypt(ciphertext, key))
+
+
+44444444444444444444444444
+
+
+from Crypto.PublicKey import RSA
+from Crypto.Cipher import PKCS1_OAEP
+
+def rsa_encrypt(plaintext, public_key):
+    cipher = PKCS1_OAEP.new(public_key)
+    return cipher.encrypt(plaintext.encode())
+
+def rsa_decrypt(ciphertext, private_key):
+    cipher = PKCS1_OAEP.new(private_key)
+    return cipher.decrypt(ciphertext).decode()
+
+# Example usage:
+key_pair = RSA.generate(2048)
+public_key = key_pair.publickey()
+private_key = key_pair
+
+plaintext = "RSA ENCRYPTION"
+ciphertext = rsa_encrypt(plaintext, public_key)
+print("Encrypted:", ciphertext)
+print("Decrypted:", rsa_decrypt(ciphertext, private_key))
+
+
+
+555555555555555555
+
+import ssl
+import socket
+
+def ssl_client(host, port):
+    context = ssl.create_default_context()
+    with socket.create_connection((host, port)) as sock:
+        with context.wrap_socket(sock, server_hostname=host) as ssock:
+            ssock.sendall(b"Hello SSL Server")
+            print("Received:", ssock.recv(1024))
+
+# Example usage:
+# ssl_client("example.com", 443)
+
+
+6666666666666666666
+
+import hashlib
+
+def sha512_hash(message):
+    sha512 = hashlib.sha512()
+    sha512.update(message.encode())
+    return sha512.hexdigest()
+
+# Example usage:
+message = "This is a test message"
+hash_value = sha512_hash(message)
+print("SHA-512 Hash:", hash_value)
+
+
+
+
+
+777777777777777777
+
+import random
+
+def generate_otp(length=8):
+    return ''.join([str(random.randint(0, 9)) for _ in range(length)])
+
+# Example usage:
+otp = generate_otp()
+print("Generated OTP:", otp)
+
+
+8888888888888888

@@ -1,0 +1,17 @@
+#First Section Command in router interface
+
+->access-list 120 deny ip host 192.168.3.2 host 192.170.5.8
+
+->access-list 120 permit ip any any
+
+->do wr
+
+
+#Second Section Command in specific router port where incoming data packets will be blocked
+
+->ip access-group 120 in
+
+
+# Here, the range of Extended ACL is (100-199). So, we used 120. We could've used any number between 100 to 199.
+# The first host (192.168.3.2) is the host ip address that we wanted to block from the server.
+# The second host (192.170.5.8) is the server ip address where we wanted to deny a pc from this server.
